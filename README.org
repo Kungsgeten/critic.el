@@ -1,0 +1,8 @@
+#+TITLE:Critic.el
+An Emacs minor-mode for [[http://criticmarkup.com/][CriticMarkup]]. In its early stages but does provide syntax highlightning and the option to apply the suggested changes. Use the following:
+
+- =M-x critic-minor-mode=
+- =M-x critic-at-point=
+- =M-x critic-buffer=
+
+The main functionality missing is to add the markup to the =org-mode= exporter.
