@@ -1,8 +1,20 @@
-;;; critic --- Minor mode for CriticMarkup
+;;; critic.el --- Minor mode for CriticMarkup
+
+;; Copyright (C) 2016 Erik Sjöstrand
+;; MIT License
+
+;; Author: Erik Sjöstrand
+;; URL: http://github.com/Kungsgeten/critic.el
+;; Version: 0.1
+;; Keywords: wp
+;; Package-Requires: ()
 
 ;;; Commentary:
 
-
+;; Minor mode for CriticMarkup (http://criticmarkup.com).
+;; Provides syntax highlightning through `font-lock-mode'.
+;; Can query for addition/deletion/substitution with `critic-at-point'
+;; or `critic-buffer'.
 
 ;;; Code:
 (defconst critic-addition-regex "{\\+\\+\\(.*?\\)\\+\\+}"
@@ -39,6 +51,47 @@
     (put 'critic-font-lock 'state t))
   (font-lock-fontify-buffer))
 
+(defun critic-add (&optional force)
+  "Maybe add critic markup at point.  Always add if FORCE is t."
+  (when (looking-at critic-addition-regex)
+    (if (or force (y-or-n-p "Add? "))
+        (replace-match (match-string 1))
+      (replace-match ""))))
+
+(defun critic-delete (&optional force)
+  "Maybe delete critic markup at point.  Always delete if FORCE is t."
+  (when (looking-at critic-deletion-regex)
+    (if (or force (y-or-n-p "Delete? "))
+        (replace-match "")
+      (replace-match (match-string 1)))))
+
+(defun critic-substitute (&optional force)
+  "Maybe substitute critic markup at point.  Always substutute if FORCE is t."
+  (when (looking-at critic-substitution-regex)
+    (if (or force (y-or-n-p "Substitute? "))
+        (replace-match (match-string 2))
+      (replace-match (match-string 1)))))
+
+(defun critic-at-point (&optional force)
+  "Maybe apply critic markup at point.  Always apply if FORCE is t."
+  (interactive)
+  (critic-add force)
+  (critic-delete force)
+  (critic-substitute force))
+
+(defun critic-buffer ()
+  "Go through critic markup in buffer and remove/apply."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (ignore-errors (search-forward-regexp
+                           (concat "\\(" critic-addition-regex "\\|"
+                                   critic-deletion-regex "\\|"
+                                   critic-substitution-regex "\\)")))
+      (goto-char (match-beginning 0))
+      (critic-at-point))))
+
+;;;###autoload
 (define-minor-mode critic-minor-mode
   "Minor mode for CriticMarkdown."
   :lighter " critic"
