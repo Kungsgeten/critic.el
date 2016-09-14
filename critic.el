@@ -40,17 +40,6 @@
     (,critic-highlight-regex 0 highlight t)
     (,critic-comment-regex 0 font-lock-comment-face t)))
 
-(defun critic-font-lock ()
-  "Toggle critic syntax highlightning."
-  (interactive)
-  (if (get 'critic-font-lock 'state)
-      (progn
-        (font-lock-add-keywords nil (critic--font-lock-keywords))
-        (put 'critic-font-lock 'state nil))
-    (font-lock-remove-keywords nil (critic--font-lock-keywords))
-    (put 'critic-font-lock 'state t))
-  (font-lock-fontify-buffer))
-
 (defun critic-add (&optional force)
   "Maybe add critic markup at point.  Always add if FORCE is t."
   (when (looking-at critic-addition-regex)
@@ -91,11 +80,37 @@
       (goto-char (match-beginning 0))
       (critic-at-point))))
 
+(defun org-critic-to-html (backend)
+  "Convert CriticMarkyp in buffer to HTML, if BACKEND is html."
+  (when (equal backend 'html)
+    (while (re-search-forward critic-addition-regex nil t)
+      (replace-match "@@html:<ins>@@\\1@@html:</ins>@@" nil nil))
+    (goto-char (point-min))
+    (while (re-search-forward critic-deletion-regex nil t)
+      (replace-match "@@html:<del>@@\\1@@html:</del>@@" nil nil))
+    (goto-char (point-min))
+    (while (re-search-forward critic-substitution-regex nil t)
+      (replace-match "@@html:<del>@@\\1@@html:</del><ins>@@\\2@@html:</ins>@@" nil nil))
+    (goto-char (point-min))
+    (while (re-search-forward critic-highlight-regex nil t)
+      (replace-match
+       "@@html:<mark>@@\\1@@html:</mark><span class=\"critic comment\">@@\\2@@html:</span>@@" nil nil))
+    (goto-char (point-min))
+    (while (re-search-forward critic-comment-regex nil t)
+      (replace-match "@@html:<span class=\"critic comment\">@@\\1@@html:</span>@@" nil nil))))
+
 ;;;###autoload
 (define-minor-mode critic-minor-mode
   "Minor mode for CriticMarkdown."
   :lighter " critic"
-  (critic-font-lock))
+  (if critic-minor-mode
+      (progn
+        (font-lock-add-keywords nil (critic--font-lock-keywords))
+        (when (equal major-mode 'org-mode)
+          (add-hook 'org-export-before-parsing-hook 'org-critic-to-html)))
+    (font-lock-remove-keywords nil (critic--font-lock-keywords))
+    (when (equal major-mode 'org-mode)
+      (remove-hook 'org-export-before-parsing-hook 'org-critic-to-html))))
 
 (provide 'critic)
 ;;; critic.el ends here

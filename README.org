@@ -1,8 +1,8 @@
 #+TITLE:Critic.el
-An Emacs minor-mode for [[http://criticmarkup.com/][CriticMarkup]]. In its early stages but does provide syntax highlightning and the option to apply the suggested changes. Use the following:
+An Emacs minor-mode for [[http://criticmarkup.com/][CriticMarkup]]. In its early stages but does provide syntax highlightning, the option to apply the suggested changes, and =org-mode= HTML export. Use the following:
 
 - =M-x critic-minor-mode=
 - =M-x critic-at-point=
 - =M-x critic-buffer=
 
-The main functionality missing is to add the markup to the =org-mode= exporter.
+When exporting to HTML from =org-mode=, the CriticMarkup will be exported according to the [[http://criticmarkup.com/spec.php][CriticMarkup spec]]. =critic.el= does not add any extra CSS to the HTML output, so this has to be done by you if you want to style the document.
